@@ -1,8 +1,31 @@
 # YouTube Studio MCP
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
+![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)
+![YouTube API](https://img.shields.io/badge/YouTube-Data%20API%20%2B%20Analytics-red.svg)
+
 A local Model Context Protocol (MCP) server for managing YouTube channels from AI tools such as Codex, Claude Desktop, Cursor, and other MCP-compatible clients.
 
 YouTube Studio MCP lets your assistant inspect channel performance, review recent uploads, update video metadata, upload thumbnails, post comments, and read analytics through your own Google OAuth credentials.
+
+![YouTube Studio MCP terminal demo](assets/demo-terminal.svg)
+
+## Demo
+
+```text
+User: Show my YouTube channel overview and summarize the last 10 uploaded videos.
+
+Assistant uses:
+- youtube_auth_status
+- youtube_channel_overview
+- youtube_list_videos
+
+Result:
+The assistant can review recent uploads, public stats, metadata, privacy status, and improvement opportunities.
+```
+
+See [Demo](docs/demo.md) for a setup walkthrough.
 
 ## Features
 
@@ -138,6 +161,10 @@ These scopes are broad because the server supports both read and write YouTube S
 - Review tool calls before allowing metadata updates or comments.
 - Keep a backup of important titles, descriptions, and tags before bulk updates.
 
+## Verification
+
+Before publishing, this repo was checked to confirm that only `secrets/.gitkeep` is tracked under `secrets/`; real OAuth files such as `secrets/client_secret.json` and `secrets/token.json` are ignored by git.
+
 ## Repository topics
 
 Suggested GitHub topics:
@@ -155,6 +182,10 @@ scripts/publish_github.sh i1s-abhishek youtube-studio-mcp
 ```
 
 The script creates a public GitHub repo if needed, pushes `main`, and applies relevant discovery topics.
+
+## Sharing
+
+Use [Launch Copy](docs/launch-copy.md) when submitting this project to MCP directories or posting it on social platforms.
 
 ## Contributing
 
