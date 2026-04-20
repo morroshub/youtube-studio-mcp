@@ -146,6 +146,16 @@ Suggested GitHub topics:
 mcp, model-context-protocol, youtube, youtube-api, youtube-analytics, youtube-studio, ai-tools, creator-tools, python
 ```
 
+## Publishing
+
+Maintainers can publish or update the GitHub repository with:
+
+```bash
+scripts/publish_github.sh i1s-abhishek youtube-studio-mcp
+```
+
+The script creates a public GitHub repo if needed, pushes `main`, and applies relevant discovery topics.
+
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
