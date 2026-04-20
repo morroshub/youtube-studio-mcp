@@ -1,0 +1,32 @@
+[project]
+name = "youtube-studio-mcp"
+version = "0.1.0"
+description = "Local MCP server for YouTube metadata, thumbnails, comments, and analytics."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Abhishek Pandey" }]
+keywords = [
+  "mcp",
+  "model-context-protocol",
+  "youtube",
+  "youtube-api",
+  "youtube-analytics",
+  "creator-tools",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Internet :: WWW/HTTP",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/i1s-abhishek/youtube-studio-mcp"
+Issues = "https://github.com/i1s-abhishek/youtube-studio-mcp/issues"
+
+[tool.ruff]
+line-length = 100
