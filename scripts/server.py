@@ -608,28 +608,39 @@ class McpServer:
             )
         raise RuntimeError(f"Unknown tool: {name}")
 
-    @staticmethod
-    def _read_message() -> dict[str, Any] | None:
+    def _read_message(self) -> dict[str, Any] | None:
+        first_line = sys.stdin.buffer.readline()
+        if not first_line:
+            return None
+        if first_line.lstrip().startswith(b"{"):
+            self._json_lines = True
+            return json.loads(first_line.decode("utf-8"))
+
+        self._json_lines = False
         headers: dict[str, str] = {}
+        line = first_line
         while True:
-            line = sys.stdin.buffer.readline()
-            if not line:
-                return None
-            if line == b"\r\n":
+            if line in (bytes((13, 10)), bytes((10,))):
                 break
             key, _, value = line.decode("utf-8").partition(":")
             headers[key.strip().lower()] = value.strip()
+            line = sys.stdin.buffer.readline()
+            if not line:
+                return None
         length = int(headers.get("content-length", "0"))
         if length <= 0:
             return None
         body = sys.stdin.buffer.read(length)
         return json.loads(body.decode("utf-8"))
 
-    @staticmethod
-    def _write_message(payload: dict[str, Any]) -> None:
+    def _write_message(self, payload: dict[str, Any]) -> None:
         encoded = json.dumps(payload).encode("utf-8")
-        sys.stdout.buffer.write(f"Content-Length: {len(encoded)}\r\n\r\n".encode("utf-8"))
-        sys.stdout.buffer.write(encoded)
+        if getattr(self, "_json_lines", False):
+            sys.stdout.buffer.write(encoded + b"\n")
+        else:
+            header = f"Content-Length: {len(encoded)}".encode("utf-8") + bytes((13, 10, 13, 10))
+            sys.stdout.buffer.write(header)
+            sys.stdout.buffer.write(encoded)
         sys.stdout.buffer.flush()
 
     def _success(self, message_id: Any, result: dict[str, Any]) -> None:

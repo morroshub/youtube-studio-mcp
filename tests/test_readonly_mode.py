@@ -1,6 +1,9 @@
 import importlib.util
+import io
+import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,3 +65,31 @@ def test_hidden_write_tool_cannot_be_called(monkeypatch, tmp_path):
         assert "disabled in read-only mode" in str(exc)
     else:
         raise AssertionError("write tool was callable")
+
+
+def test_mcp_accepts_json_lines_framing(monkeypatch):
+    message = {"jsonrpc": "2.0", "id": 1, "method": "ping"}
+    monkeypatch.setattr(
+        server.sys,
+        "stdin",
+        SimpleNamespace(buffer=io.BytesIO((json.dumps(message) + "\n").encode())),
+    )
+    mcp = object.__new__(server.McpServer)
+
+    assert mcp._read_message() == message
+    assert mcp._json_lines is True
+
+
+def test_mcp_replies_with_json_lines_when_client_uses_it(monkeypatch):
+    output = io.BytesIO()
+    monkeypatch.setattr(server.sys, "stdout", SimpleNamespace(buffer=output))
+    mcp = object.__new__(server.McpServer)
+    mcp._json_lines = True
+
+    mcp._write_message({"jsonrpc": "2.0", "id": 1, "result": {}})
+
+    assert json.loads(output.getvalue().decode()) == {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {},
+    }
