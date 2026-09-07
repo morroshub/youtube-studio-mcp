@@ -7,7 +7,6 @@ import base64
 import json
 import mimetypes
 import os
-import secrets
 import sys
 import time
 import urllib.error
@@ -21,14 +20,11 @@ from typing import Any
 PROTOCOL_VERSION = "2024-11-05"
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 REDIRECT_URI = "http://127.0.0.1:8765/oauth2callback"
-AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_UPLOAD_BASE = "https://www.googleapis.com/upload/youtube/v3"
 YOUTUBE_ANALYTICS_BASE = "https://youtubeanalytics.googleapis.com/v2"
 SCOPES = [
-    "https://www.googleapis.com/auth/youtube",
-    "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
@@ -542,6 +538,19 @@ class McpServer:
                 },
             },
         ]
+        # Defense in depth: this fork starts in analytics-only mode. Keep only
+        # read operations visible even if write helpers remain in the upstream code.
+        readonly_names = {
+            "youtube_auth_status",
+            "youtube_start_auth",
+            "youtube_channel_overview",
+            "youtube_list_videos",
+            "youtube_get_video",
+            "youtube_channel_analytics",
+            "youtube_video_analytics",
+            "youtube_list_comments",
+        }
+        self.tools = [tool for tool in self.tools if tool["name"] in readonly_names]
 
     def _start_auth_payload(self) -> dict[str, Any]:
         status = self.auth.auth_status()
@@ -549,29 +558,18 @@ class McpServer:
             raise RuntimeError(
                 "client_secret.json is missing. Add your Google OAuth desktop client JSON first."
             )
-        client = self.auth.load_client_config()
-        state = secrets.token_urlsafe(24)
-        params = urllib.parse.urlencode(
-            {
-                "client_id": client["client_id"],
-                "redirect_uri": REDIRECT_URI,
-                "response_type": "code",
-                "scope": " ".join(SCOPES),
-                "access_type": "offline",
-                "prompt": "consent",
-                "state": state,
-            }
-        )
         helper = PLUGIN_ROOT / "scripts" / "auth.py"
         return {
-            "authorization_url": f"{AUTH_URL}?{params}",
             "token_path": status["token_path"],
             "client_secrets_path": status["client_secrets_path"],
-            "helper_command": f"python3 {helper} auth",
+            "helper_command": f"python {helper} auth",
             "redirect_uri": REDIRECT_URI,
         }
 
     def _call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        exposed_names = {tool["name"] for tool in self.tools}
+        if name not in exposed_names:
+            raise RuntimeError(f"Tool {name} is disabled in read-only mode.")
         if name == "youtube_auth_status":
             return self.auth.auth_status()
         if name == "youtube_start_auth":

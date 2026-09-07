@@ -24,8 +24,6 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 REDIRECT_URI = "http://127.0.0.1:8765/oauth2callback"
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 SCOPES = [
-    "https://www.googleapis.com/auth/youtube",
-    "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
